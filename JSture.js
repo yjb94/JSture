@@ -189,7 +189,10 @@ function DistanceAtBestAngle(points, T, thetaA, thetaB, thetaDelta) {
 }
 
 function DistanceAtAngle(points, T, theta) {
+    var newPoints = RotateBy(points, theta);
+    var d = PathDistance(newPoints, T); //d ← PATH-DISTANCE(newPoints, Tpoints)??
 
+    return d;
 }
 
 function PathDistance(A, B) {
