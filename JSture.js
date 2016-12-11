@@ -164,8 +164,28 @@ function Recongnize(points, templates) {
     //return <T', score>??;
 }
 
-function DistanceAtBestAngle(points, T, thetaA, thetaB, thetaD) {
+function DistanceAtBestAngle(points, T, thetaA, thetaB, thetaDelta) {
+    var x1 = PI*thetaA + (1-PI)*thetaB;
+    var f1 = DistanceAtAngle(points, T, x1);
+    var x2 = (1-PI)*thetaA + PI*thetaB;
+    var f2 = DistanceAtAngle(points, T, x2);
 
+    while(Math.abs(thetaB-thetaA) > thetaDelta) {
+        if(f1 < f2) {
+            thetaB = x2;
+            x2 = x1;
+            f2 = f1;
+            x1 = PI*thetaA+(1-PI)*thetaB;
+            f1 = DistanceAtAngle(points, T, x1);
+        } else {
+            thetaA = x1;
+            x1 = x2;
+            f1 = f2;
+            x2 = (1-PI)*thetaA + PI*thetaB;
+            f2 = DistanceAtAngle(points, T, x2);
+        }
+    }
+    return Math.min(f1, f2);
 }
 
 function DistanceAtAngle(points, T, theta) {
