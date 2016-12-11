@@ -34,14 +34,6 @@ function Jsture () {
 		this.DeleteGesture = function() {}; // Delete Custom Gesture
 }
 
-function PathDistance(points) // length traversed by a point path
-{
-	var d = 0.0;
-	for (var i = 1; i < points.length; i++)
-		d += Distance(points[i - 1], points[i]);
-	return d;
-}
-
 
 ////////Unistroke Recognizer
 
@@ -196,7 +188,21 @@ function DistanceAtAngle(points, T, theta) {
 }
 
 function PathDistance(A, B) {
+    var d = 0.0;
 
+    for(var i=0; i<A.length; i++) {
+        d = d + Distance(A[i], B[i]);
+    }
+
+    return d/A.length;
 }
 
-function DegToRad(deg) { return (deg * Math.PI / 180.0); }
+function DegToRad(deg) {
+    return (deg * Math.PI / 180.0);
+}
+
+function Distance(p1, p2) {
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
