@@ -15,9 +15,12 @@ function Point(x, y)
 
 function Gesture (name, points) {
 
-	this.Name = name;
-
-	this.Points = points; // Array of Pointer
+    this.Name = name;
+    this.Points = Resample(points, NumPoints);
+    var radians = IndicativeAngle(this.Points);
+    this.Points = RotateBy(this.Points, -radians);
+    this.Points = ScaleTo(this.Points, SquareSize);
+    this.Points = TranslateTo(this.Points, Origin);
 
 }
 
@@ -25,13 +28,26 @@ function Jsture () {
 
 		this.GestureArray = new Array(); // Array of Gestures
 
-		this.Recognize = function(points, n) {
+		this.Recognize = Recognize(name, this.GestureArray) // Recognize touch input
 
-        }; // Recognize touch input
+		this.AddGesture = function()
+        {
+            this.GestureArray[this.GestureArray.length] = new Gesture(name, points);    //append new gesture
+        }; // Add Custom Gesture
 
-		this.AddGesture = function() {}; // Add Custom Gesture
-
-		this.DeleteGesture = function() {}; // Delete Custom Gesture
+		this.DeleteGesture = function()
+        {
+            //find gesture
+            for (var i = 0; i < this.GestureArray.length; i++)
+            {
+                if (this.GestureArray[i].Name == name)
+                {
+                    this.GestureArray.splice(i, 1);
+                    break;
+                }
+            }
+            return this.GestureArray.length;
+        }; // Delete Custom Gesture
 }
 
 
@@ -43,6 +59,7 @@ var Size = 250;
 var PI = 0.5*(-1.0 + Math.sqrt(5.0));
 var Theta = DegToRad(45.0);
 var ThetaDelta = DegToRad(2.0);
+var HalfDiagonal = 0.5 * Diagonal;
 
 //Step 1. Resample a points path into n evenly spaced points. We
 //use n=64. For gestures serving as templates, Steps 1-3 should be
@@ -140,8 +157,16 @@ function TranslateTo(points, k) {
 //θΔ=2° on line 3 of RECOGNIZE. Due to using RESAMPLE, we can
 //assume that A and B in PATH-DISTANCE contain the same number
 //of points, i.e., |A|=|B|.
-function Recongnize(points, templates) {
+function Recognize(points, templates) {
+    //default setting
+    points = Resample(points, PointsNum);
+    var radians = IndicativeAngle(points);
+    points = RotateBy(points, -radians);
+    points = ScaleTo(points, SquareSize);
+    points = TranslateTo(points, Origin);
+
     var b = +Infinity;
+    var f = -1// to find match
 
     for(var i=0; i<templates.length; i++) {
         var d = DistanceAtBestAngle(points, templates[i], -Theta, Theta, ThetaDelta);
@@ -149,11 +174,13 @@ function Recongnize(points, templates) {
         if(d < b) {
             b = d;
             //T' <- Templates[i]?
+            f = i;
         }
     }
     var score = 1 - b/0.5*Math.sqrt(Math.pow(Size,2) + Math.pow(Size,2));
 
     //return <T', score>??;
+    return (f == -1) ? new Result("No match", 0.0) : new Result(templates[f].name,1.0 - b / HalfDiagonal)
 }
 
 function DistanceAtBestAngle(points, T, thetaA, thetaB, thetaDelta) {
