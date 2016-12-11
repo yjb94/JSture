@@ -42,6 +42,16 @@ function PathDistance(points) // length traversed by a point path
 	return d;
 }
 
+
+////////Unistroke Recognizer
+
+//static values
+var PointsNum = 64;
+var Size = 250;
+var PI = 0.5*(-1.0 + Math.sqrt(5.0));
+var Theta = DegToRad(45.0);
+var ThetaDelta = DegToRad(2.0);
+
 //Step 1. Resample a points path into n evenly spaced points. We
 //use n=64. For gestures serving as templates, Steps 1-3 should be
 //carried out once on the raw input points. For candidates, Steps 1-4
@@ -139,5 +149,31 @@ function TranslateTo(points, k) {
 //assume that A and B in PATH-DISTANCE contain the same number
 //of points, i.e., |A|=|B|.
 function Recongnize(points, templates) {
+    var b = +Infinity;
+
+    for(var i=0; i<templates.length; i++) {
+        var d = DistanceAtBestAngle(points, templates[i], -Theta, Theta, ThetaDelta);
+
+        if(d < b) {
+            b = d;
+            //T' <- Templates[i]?
+        }
+    }
+    var score = 1 - b/0.5*Math.sqrt(Math.pow(Size,2) + Math.pow(Size,2));
+
+    //return <T', score>??;
+}
+
+function DistanceAtBestAngle(points, T, thetaA, thetaB, thetaD) {
 
 }
+
+function DistanceAtAngle(points, T, theta) {
+
+}
+
+function PathDistance(A, B) {
+
+}
+
+function DegToRad(deg) { return (deg * Math.PI / 180.0); }
