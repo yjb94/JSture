@@ -75,8 +75,13 @@ function mouseUpEvent(x, y)
         _isDown = false;
         if (_points.length >= 10)
         {
+            var time1 = performance.now();
             var result = _r.Recognize(_points);
-            $("#existGestureName").val("Result: " + result.Name + " (" + round(result.Score,2) + ").");
+            var time2 = performance.now();
+            //millisecond to second
+            var time = (time2-time1)/1000%60;
+
+            $("#existGestureName").val("결과: " + result.Name + " (" + round(result.Score,2) + "), 시간: " + time);
         }
         else // fewer than 10 points were inputted
         {
