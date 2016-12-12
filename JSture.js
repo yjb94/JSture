@@ -24,7 +24,7 @@ function Gesture (name, points) {
 
 }
 
-function Jsture () {
+function JSture () {
 
 		this.GestureArray = new Array(); // Array of Gestures
 
@@ -50,8 +50,6 @@ function Jsture () {
         }; // Delete Custom Gesture
 }
 
-
-////////Unistroke Recognizer
 
 //static values
 var PointsNum = 64;
@@ -232,4 +230,150 @@ function Distance(p1, p2) {
     var dx = p2.x - p1.x;
     var dy = p2.y - p1.y;
     return Math.sqrt(dx * dx + dy * dy);
+}
+
+
+//////////shortstraw for corner recognization
+var threshold = 0.95;
+
+
+function corners(points)
+{
+    var resampled = Resample(points, PointsNum);
+    var corners = GetCorners(resampled);
+    return corners
+}
+
+
+//get corners
+//input : series of resmapled point
+//output : resampled points that correspond to corners
+function GetCorners(points)
+{
+    var corners = new Array();
+    corners.push(0);
+    var W = 3
+    var straws = new Array();
+
+    for(var i = W; i < points.length - W; i++)
+    {
+        straws[i] = Distance(points[i-W], points[i+W]);
+    }
+    var t = median(straws) * threshold;
+
+    for(var i = W; i < points.length - W; i++)
+    {
+        var localMin = -1;
+        var localMinIndex = -1;
+        if(straws[i] < t)
+        {
+            localMin =  Number.POSITIVE_INFINITY;
+            localMinIndex = i;
+
+            while(i < straws.length && straws[i] < t)
+            {
+                if(straws[i] < localMin)
+                {
+                    localMin = straws[i];
+                    localMinIndex = i;
+                }
+                i++;
+            }
+            corners.push(localMinIndex);
+        }
+    }
+    corners.push(points.length - 1);
+    corners = postProcessCorners(points, corners, straws);
+    return corners;
+}
+
+//post process corners
+//input : series of resampled points, an initial set of corners, and the straw distance for each point
+//output : A set of post-processed with higher level polyline rules
+
+function postProcessCorners(points, corners, straws)
+{
+    var go = false;
+    var c1;
+    var c2;
+    while (!go)
+    {
+        go = true;
+        for(var i = 1; i < corners.length; i++)
+        {
+            //이거 수도코드에서는 index가 아닌 value로 쓰는데 로직상 index가 맞는거 같음 좀 봐야댐
+            c1 = corners[i-1];
+            c2 = corners[i];
+            if(!isLine(points, c1, c2))
+            {
+                var new_corner = HalfwayCorner(straws, c1, c2);
+                // prevents adding undefined points
+                if (newCorner > c1 && newCorner < c2)
+                {
+                    corners.splice(i,0,newCorner);
+                    go = false;
+                }
+            }
+        }
+    }
+    for(var i = 1; i < corners.length - 1; i++)
+    {
+        c1 = corners[i-1];
+        c2 = corners[i+1];
+        if(isLine(points, c1, c2))
+        {
+            corners.splice(i, 1);
+            i--;
+        }
+    }
+    return corners;
+}
+
+function HalfwayCorner(straws, a, b)
+{
+    var quarter = (b-a)/4;
+    var min_value =  Number.POSITIVE_INFINITY;
+    var min_index = -1;
+    for(var i = a+quarter; i < b-quarter; i++)
+    {
+        if(straws[i] < min_value)
+        {
+            min_value = straws[i];
+            min_index = i;
+        }
+    }
+    return min_index;
+}
+
+function isLine(points, a, b)
+{
+    var distance = Distance(points[a], points[b]);
+    var path_distance = PathDistance(points, a, b);
+
+    return (distance/path_distance) > threshold;
+}
+
+function PathDistance(points, a, b)
+{
+    var d = 0;
+    for(var i = a; i < b; i++)
+        d = d + Distance(point[i], points[i+1]);
+    return d;
+}
+
+function median(values)
+{
+    var s = values.concat();
+    s.sort();
+    var m;
+    if (s.length % 2 == 0)
+    {
+        m = s.length / 2;
+        return (s[m - 1] + s[m]) / 2;
+    }
+    else
+    {
+        m = (s.length + 1) / 2;
+        return s[m - 1];
+    }
 }
