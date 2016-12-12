@@ -54,9 +54,11 @@ function JSture () {
 //static values
 var PointsNum = 64;
 var Size = 250;
+var Origin = new Point(0,0);
 var PI = 0.5*(-1.0 + Math.sqrt(5.0));
 var Theta = DegToRad(45.0);
 var ThetaDelta = DegToRad(2.0);
+var Diagonal = Math.sqrt(Size * Size + Size * Size);
 var HalfDiagonal = 0.5 * Diagonal;
 
 //Step 1. Resample a points path into n evenly spaced points. We
@@ -101,7 +103,7 @@ function PathLength(points) {
 function IndicativeAngle(points) {
     var c = Centroid(points);
 
-    return Math.atan2(c.y - points[o].y, c.x - points[0].x);
+    return Math.atan2(c.y - points[0].y, c.x - points[0].x);
 }
 
 function RotateBy(points, w) {
@@ -160,7 +162,7 @@ function Recognize(points, templates) {
     points = Resample(points, PointsNum);
     var radians = IndicativeAngle(points);
     points = RotateBy(points, -radians);
-    points = ScaleTo(points, SquareSize);
+    points = ScaleTo(points, Size);
     points = TranslateTo(points, Origin);
 
     var b = +Infinity;
@@ -376,4 +378,17 @@ function median(values)
         m = (s.length + 1) / 2;
         return s[m - 1];
     }
+}
+
+/////
+function Centroid(points)
+{
+    var x = 0.0, y = 0.0;
+    for (var i = 0; i < points.length; i++) {
+        x += points[i].x;
+        y += points[i].y;
+    }
+    x /= points.length;
+    y /= points.length;
+    return new Point(x, y);
 }
